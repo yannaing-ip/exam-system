@@ -72,3 +72,22 @@ class ExamAttempt(models.Model):
 
     def __str__(self):
         return f"{self.user} - {self.exam.title} (Attempt {self.attempt_number})"
+
+class Answer(models.Model):
+    attempt = models.ForeignKey(
+        ExamAttempt,
+        on_delete=models.CASCADE,
+        related_name='answers'
+    )
+    question = models.ForeignKey(
+        Question,
+        on_delete=models.CASCADE
+    )
+    choice = models.ForeignKey(
+        Choice,
+        on_delete=models.CASCADE
+    )
+
+    class Meta:
+        unique_together = ('attempt', 'question')
+
