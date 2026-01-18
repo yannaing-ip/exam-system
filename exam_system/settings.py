@@ -43,7 +43,13 @@ INSTALLED_APPS = [
     'accounts',
     'core',
     'teacher',
+
+    #ThirdParty
+    'tailwind',
+    'theme',
 ]
+
+TAILWIND_APP_NAME = "theme"
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
