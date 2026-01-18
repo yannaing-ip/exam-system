@@ -1,0 +1,27 @@
+<h1>Exam Result: {{ attempt.exam.title }}</h1>
+<p>Score: {{ attempt.score }} / {{ attempt.exam.questions.count }}</p>
+
+<hr>
+{% for item in results %}
+  <div>
+    <p><b>{{ forloop.counter }}. {{ item.question.text }}</b></p>
+    
+    <p>Your Answer: 
+        {% if item.selected %}
+            {{ item.selected.text }}
+        {% else %}
+            Not answered
+        {% endif %}
+    </p>
+    
+    <p>Correct Answer: 
+        {% if item.correct %}
+            {{ item.correct.text }}
+        {% else %}
+            Not set
+        {% endif %}
+    </p>
+    
+    <hr>
+  </div>
+{% endfor %}

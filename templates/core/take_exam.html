@@ -1,24 +1,136 @@
-<h2>{{ exam.title }}</h2>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>{{ exam.title }} - Take Exam</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f4f4f4;
+            margin: 0;
+            padding: 0 10px;
+        }
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px;
+            background: #007bff;
+            color: white;
+        }
+        header h1 { margin: 0; font-size: 22px; }
+        .timer { font-weight: bold; font-size: 18px; }
+        .question {
+            background: #fff;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 8px;
+            box-shadow: 0 0 5px #ccc;
+        }
+        .choices label {
+            display: block;
+            margin-bottom: 10px;
+            cursor: pointer;
+        }
+        .choices input[type="radio"] {
+            margin-right: 10px;
+        }
+        .submit-btn {
+            display: block;
+            width: 100%;
+            padding: 12px;
+            font-size: 18px;
+            background: #28a745;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            margin: 20px 0;
+        }
+        .submit-btn:hover {
+            background: #218838;
+        }
+    </style>
+</head>
+<body>
 
-<p>
-Time ends at: {{ attempt.end_time }}
-</p>
+<header>
+    <h1>{{ exam.title }}</h1>
+    <div class="timer">Time Left: <span id="timer"></span></div>
+</header>
 
-<form method="post">
-  {% csrf_token %}
+<form method="post" id="exam-form" action="{% url 'exam_confirm' exam.id %}">
+    {% csrf_token %}
+    {% for question in questions %}
+        <div class="question">
+            <p><b>{{ forloop.counter }}. {{ question.text }}</b></p>
+            <div class="choices">
+                {% for choice in question.choices.all %}
+                    <label>
+                        <input type="radio" name="question_{{ question.id }}" value="{{ choice.id }}"
+                        {{ choice.text }}
+                    </label>
+                {% endfor %}
+            </div>
+        </div>
+    {% endfor %}
 
-  {% for question in questions %}
-    <div style="margin-bottom: 20px;">
-      <p><strong>{{ forloop.counter }}. {{ question.text }}</strong></p>
-
-      {% for choice in question.choices.all %}
-        <label>
-          <input type="radio" name="question_{{ question.id }}" value="{{ choice.id }}">
-          {{ choice.text }}
-        </label><br>
-      {% endfor %}
-    </div>
-  {% endfor %}
-
-  <button type="submit" >Submit</button>
+    <button type="submit" class="submit-btn">Confirm & Submit Exam</button>
 </form>
+
+<script>
+    // -----------------------------
+    // Timer countdown
+    // -----------------------------
+    const endTimeStr = "{{ attempt.end_time|date:'c' }}"; // ISO 8601
+    const endTime = new Date(endTimeStr).getTime();
+    const timerElement = document.getElementById("timer");
+
+    function updateTimer() {
+        const now = new Date().getTime();
+        const distance = endTime - now;
+
+        if (distance <= 0) {
+            clearInterval(timerInterval);
+            alert("Time is up! Redirecting to confirmation page...");
+            window.location.href = "{% url 'exam_confirm' exam.id %}";
+        } else {
+            const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+            const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+            timerElement.innerText = minutes + "m " + seconds + "s";
+        }
+    }
+
+    const timerInterval = setInterval(updateTimer, 1000);
+    updateTimer(); // initial call
+
+    // -----------------------------
+    // Auto-save answers when selected
+    // -----------------------------
+    function saveAnswer(questionId, choiceId) {
+        fetch("{% url 'save_answer' %}", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/x-www-form-urlencoded",
+                "X-CSRFToken": "{{ csrf_token }}"
+            },
+            body: `attempt_id={{ attempt.id }}&question_id=${questionId}&choice_id=${choiceId}`
+        })
+        .then(response => response.json())
+        .then(data => {
+            if(data.status !== "ok") console.error("Failed to save answer");
+        });
+    }
+
+    // Attach event listeners to radio buttons
+    document.querySelectorAll("input[type=radio]").forEach(radio => {
+        radio.addEventListener("change", function() {
+            const questionId = this.name.split("_")[1];
+            const choiceId = this.value;
+            saveAnswer(questionId, choiceId);
+        });
+    });
+</script>
+
+</body>
+</html>

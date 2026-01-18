@@ -1,0 +1,25 @@
+<h1>Confirm Your Answers: {{ exam.title }}</h1>
+<form method="post" action="{% url 'submit_exam' exam.id %}">
+    {% csrf_token %}
+    {% for question in questions %}
+        <p><b>{{ question.text }}</b></p>
+        <ul>
+        {% for choice in question.choices.all %}
+            {% comment %}Check if this choice was selected{% endcomment %}
+            {% with selected=False %}
+                {% for answer in answers %}
+                    {% if answer.question.id == question.id and answer.choice.id == choice.id %}
+                        {% with selected=True %}{% endwith %}
+                    {% endif %}
+                {% endfor %}
+                {% if selected %}
+                    <li style="font-weight:bold">{{ choice.text }}</li>
+                {% else %}
+                    <li>{{ choice.text }}</li>
+                {% endif %}
+            {% endwith %}
+        {% endfor %}
+        </ul>
+    {% endfor %}
+    <button type="submit">Submit Exam</button>
+</form>
