@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Sign Up</title>
+    <style>
+        .input-field { padding: 10px; margin: 5px 0; width: 200px; }
+        button { padding: 10px 20px; margin-top: 10px; }
+        .errorlist { color: red; list-style: none; }
+    </style>
+</head>
+<body>
+    <h2>Sign Up</h2>
+    <form method="POST">
+        {% csrf_token %}
+        {{ form.non_field_errors }}
+        {{ form.username.errors }}
+        {{ form.username }}
+        {{ form.email.errors }}
+        {{ form.email }}
+        {{ form.password.errors }}
+        {{ form.password }}
+        {{ form.password_confirm.errors }}
+        {{ form.password_confirm }}
+        <br>
+        <button type="submit">Sign Up</button>
+    </form>
+    <p>Already have an account? <a href="{% url 'login' %}">Login</a></p>
+</body>
+</html>
