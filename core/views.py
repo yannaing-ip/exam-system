@@ -7,28 +7,46 @@ from django.views.decorators.csrf import csrf_exempt
 
 from .models import Exam, ExamAttempt, Question, Answer, Choice
 
-@login_required
+
+def landing(request):
+	# If user is logged in, redirect to dashboard
+	if request.user.is_authenticated:
+		return redirect("home")
+
+	# Render landing page for visitors
+	return render(
+		request,
+		"core/landing.html",
+		{
+			"year": timezone.now().year,  # for footer
+		},
+	)
+
+
 def home(request):
-    exams = Exam.objects.filter(is_active=True)
+	exams = Exam.objects.filter(is_active=True)
 
-    exams_info = []
-    for exam in exams:
-        attempts_done = ExamAttempt.objects.filter(user=request.user, exam=exam).count()
-        if exam.max_attempts == 0:
-            attempts_remaining = "Unlimited"
-            can_start = True
-        else:
-            attempts_remaining = max(exam.max_attempts - attempts_done, 0)
-            can_start = attempts_remaining > 0
+	exams_info = []
+	for exam in exams:
+		attempts_done = ExamAttempt.objects.filter(user=request.user, exam=exam).count()
+		if exam.max_attempts == 0:
+			attempts_remaining = "Unlimited"
+			can_start = True
+		else:
+			attempts_remaining = max(exam.max_attempts - attempts_done, 0)
+			can_start = attempts_remaining > 0
 
-        exams_info.append({
-            "exam": exam,
-            "attempts_done": attempts_done,
-            "attempts_remaining": attempts_remaining,
-            "can_start": can_start,
-        })
+		exams_info.append(
+			{
+				"exam": exam,
+				"attempts_done": attempts_done,
+				"attempts_remaining": attempts_remaining,
+				"can_start": can_start,
+			}
+		)
 
-    return render(request, "core/home.html", {"exams_info": exams_info})
+	return render(request, "core/home.html", {"exams_info": exams_info})
+
 
 @login_required
 def start_exam(request, exam_id):
@@ -137,6 +155,7 @@ def submit_exam(request, exam_id):
 @login_required
 def exam_submitted(request):
 	return render(request, "core/exam_submitted.html")
+
 
 @login_required
 def exam_confirm(request, exam_id):
