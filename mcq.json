@@ -1,0 +1,190 @@
+{
+  "course": "Python MCQs (Basics Level)",
+  "exam": {
+    "title": "Python Basics MCQ Test",
+    "duration": 30,
+    "total_marks": 20,
+    "questions": [
+      {
+        "text": "Which of the following is the correct way to print something in Python?",
+        "choices": [
+          {"text": "echo(\"Hello\")", "is_correct": false},
+          {"text": "print(\"Hello\")", "is_correct": true},
+          {"text": "printf(\"Hello\")", "is_correct": false},
+          {"text": "println(\"Hello\")", "is_correct": false}
+        ]
+      },
+      {
+        "text": "Which symbol is used for comments in Python?",
+        "choices": [
+          {"text": "//", "is_correct": false},
+          {"text": "/* */", "is_correct": false},
+          {"text": "#", "is_correct": true},
+          {"text": "<!-- -->", "is_correct": false}
+        ]
+      },
+      {
+        "text": "Which of the following is a valid Python variable name?",
+        "choices": [
+          {"text": "2value", "is_correct": false},
+          {"text": "my-value", "is_correct": false},
+          {"text": "my_value", "is_correct": true},
+          {"text": "my value", "is_correct": false}
+        ]
+      },
+      {
+        "text": "What is the output of the following code?\nx = 10\ny = 3\nprint(x + y)",
+        "choices": [
+          {"text": "13", "is_correct": true},
+          {"text": "30", "is_correct": false},
+          {"text": "103", "is_correct": false},
+          {"text": "Error", "is_correct": false}
+        ]
+      },
+      {
+        "text": "Which operator is used for integer division?",
+        "choices": [
+          {"text": "/", "is_correct": false},
+          {"text": "%", "is_correct": false},
+          {"text": "//", "is_correct": true},
+          {"text": "**", "is_correct": false}
+        ]
+      },
+      {
+        "text": "What does the % operator do?",
+        "choices": [
+          {"text": "Division", "is_correct": false},
+          {"text": "Power", "is_correct": false},
+          {"text": "Modulus (remainder)", "is_correct": true},
+          {"text": "Multiplication", "is_correct": false}
+        ]
+      },
+      {
+        "text": "What is the data type of 5?",
+        "choices": [
+          {"text": "float", "is_correct": false},
+          {"text": "str", "is_correct": false},
+          {"text": "int", "is_correct": true},
+          {"text": "bool", "is_correct": false}
+        ]
+      },
+      {
+        "text": "What is the data type of \"Hello\"?",
+        "choices": [
+          {"text": "int", "is_correct": false},
+          {"text": "float", "is_correct": false},
+          {"text": "str", "is_correct": true},
+          {"text": "char", "is_correct": false}
+        ]
+      },
+      {
+        "text": "What is the output of:\nprint(type(3.5))",
+        "choices": [
+          {"text": "<class 'int'>", "is_correct": false},
+          {"text": "<class 'float'>", "is_correct": true},
+          {"text": "<class 'double'>", "is_correct": false},
+          {"text": "<class 'number'>", "is_correct": false}
+        ]
+      },
+      {
+        "text": "What does the input() function return?",
+        "choices": [
+          {"text": "Integer", "is_correct": false},
+          {"text": "Float", "is_correct": false},
+          {"text": "Boolean", "is_correct": false},
+          {"text": "String", "is_correct": true}
+        ]
+      },
+      {
+        "text": "What will be the output?\nx = input(\"Enter number: \")\nprint(type(x))",
+        "choices": [
+          {"text": "int", "is_correct": false},
+          {"text": "float", "is_correct": false},
+          {"text": "str", "is_correct": true},
+          {"text": "Error", "is_correct": false}
+        ]
+      },
+      {
+        "text": "How do you convert a string \"10\" into an integer?",
+        "choices": [
+          {"text": "str(\"10\")", "is_correct": false},
+          {"text": "int(\"10\")", "is_correct": true},
+          {"text": "float(\"10\")", "is_correct": false},
+          {"text": "input(\"10\")", "is_correct": false}
+        ]
+      },
+      {
+        "text": "What will be the output?\nprint(int(4.9))",
+        "choices": [
+          {"text": "5", "is_correct": false},
+          {"text": "4", "is_correct": true},
+          {"text": "Error", "is_correct": false},
+          {"text": "4.9", "is_correct": false}
+        ]
+      },
+      {
+        "text": "Which function converts an integer to a string?",
+        "choices": [
+          {"text": "int()", "is_correct": false},
+          {"text": "str()", "is_correct": true},
+          {"text": "string()", "is_correct": false},
+          {"text": "convert()", "is_correct": false}
+        ]
+      },
+      {
+        "text": "Which method converts a string to uppercase?",
+        "choices": [
+          {"text": "upper()", "is_correct": true},
+          {"text": "uppercase()", "is_correct": false},
+          {"text": "toUpper()", "is_correct": false},
+          {"text": "cap()", "is_correct": false}
+        ]
+      },
+      {
+        "text": "What is the output?\nprint(\"python\".capitalize())",
+        "choices": [
+          {"text": "python", "is_correct": false},
+          {"text": "Python", "is_correct": true},
+          {"text": "PYTHON", "is_correct": false},
+          {"text": "Error", "is_correct": false}
+        ]
+      },
+      {
+        "text": "Which function is used to find the length of a string?",
+        "choices": [
+          {"text": "length()", "is_correct": false},
+          {"text": "size()", "is_correct": false},
+          {"text": "len()", "is_correct": true},
+          {"text": "count()", "is_correct": false}
+        ]
+      },
+      {
+        "text": "What will this code print?\nprint(\"Hello\"[1])",
+        "choices": [
+          {"text": "H", "is_correct": false},
+          {"text": "e", "is_correct": true},
+          {"text": "l", "is_correct": false},
+          {"text": "Error", "is_correct": false}
+        ]
+      },
+      {
+        "text": "Which of the following variable names is NOT allowed?",
+        "choices": [
+          {"text": "_name", "is_correct": false},
+          {"text": "name1", "is_correct": false},
+          {"text": "Name", "is_correct": false},
+          {"text": "my-name", "is_correct": true}
+        ]
+      },
+      {
+        "text": "Which rule is correct about Python variable names?",
+        "choices": [
+          {"text": "Can start with a number", "is_correct": false},
+          {"text": "Can contain spaces", "is_correct": false},
+          {"text": "Can start with _ or letter", "is_correct": true},
+          {"text": "Can contain -", "is_correct": false}
+        ]
+      }
+    ]
+  }
+}

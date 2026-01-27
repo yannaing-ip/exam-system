@@ -1,27 +1,174 @@
-<h1>Exam Result: {{ attempt.exam.title }}</h1>
-<p>Score: {{ attempt.score }} / {{ attempt.exam.questions.count }}</p>
+{% extends "base.html" %}
+{% block title %}Exam Result | ExamPro{% endblock %}
 
-<hr>
-{% for item in results %}
-  <div>
-    <p><b>{{ forloop.counter }}. {{ item.question.text }}</b></p>
+{% block content %}
+
+<!-- Header -->
+<div class="bg-gradient-to-r from-indigo-600 to-purple-600 py-12">
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="text-white text-center">
+            <h1 class="text-4xl font-bold mb-2">Exam Completed!</h1>
+            <p class="text-indigo-100 text-lg">{{ attempt.exam.title }}</p>
+        </div>
+    </div>
+</div>
+
+<!-- Score Card -->
+<div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 -mt-8 mb-6">
+    <div class="bg-white rounded-2xl shadow-2xl p-8">
+        <div class="text-center mb-6">
+            <h2 class="text-2xl font-bold text-gray-900 mb-4">Your Score</h2>
+            <div class="inline-flex items-center justify-center">
+                <div class="relative">
+                    <svg class="transform -rotate-90" width="200" height="200">
+                        <circle cx="100" cy="100" r="90" stroke="#E5E7EB" stroke-width="12" fill="none"/>
+                        <circle cx="100" cy="100" r="90" 
+                                stroke="url(#gradient)" 
+                                stroke-width="12" 
+                                fill="none"
+                                stroke-linecap="round"
+                                stroke-dasharray="{{ attempt.score|floatformat:0 }} {{ attempt.exam.questions.count }}"
+                                stroke-dashoffset="0"
+                                style="stroke-dasharray: calc(2 * 3.14159 * 90 * {{ attempt.score }} / {{ attempt.exam.questions.count }}) calc(2 * 3.14159 * 90);"/>
+                        <defs>
+                            <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" style="stop-color:#6366F1;stop-opacity:1" />
+                                <stop offset="100%" style="stop-color:#A855F7;stop-opacity:1" />
+                            </linearGradient>
+                        </defs>
+                    </svg>
+                    <div class="absolute inset-0 flex items-center justify-center">
+                        <div class="text-center">
+                            <div class="text-5xl font-bold text-indigo-600">{{ attempt.score }}</div>
+                            <div class="text-gray-500 text-lg">/ {{ attempt.exam.questions.count }}</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <p class="text-xl text-gray-600 mt-4">
+                You scored 
+                <span class="font-bold text-indigo-600">
+                    {% widthratio attempt.score attempt.exam.questions.count 100 %}%
+                </span>
+            </p>
+        </div>
+
+        <!-- Stats Grid -->
+        <div class="grid grid-cols-3 gap-4 mt-6">
+            <div class="text-center p-4 bg-green-50 rounded-lg">
+                <p class="text-2xl font-bold text-green-600">{{ attempt.score }}</p>
+                <p class="text-sm text-gray-600">Correct</p>
+            </div>
+            <div class="text-center p-4 bg-red-50 rounded-lg">
+                <p class="text-2xl font-bold text-red-600">{{ attempt.exam.questions.count|add:attempt.score|add:"-"|add:attempt.score|add:"-"|add:attempt.score }}</p>
+                <p class="text-sm text-gray-600">Incorrect</p>
+            </div>
+            <div class="text-center p-4 bg-indigo-50 rounded-lg">
+                <p class="text-2xl font-bold text-indigo-600">{{ attempt.exam.questions.count }}</p>
+                <p class="text-sm text-gray-600">Total</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Question Review -->
+<div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 mb-12">
+    <h2 class="text-2xl font-bold text-gray-900 mb-6">Detailed Review</h2>
     
-    <p>Your Answer: 
-        {% if item.selected %}
-            {{ item.selected.text }}
-        {% else %}
-            Not answered
-        {% endif %}
-    </p>
+    <div class="space-y-4">
+        {% for item in results %}
+        <div class="bg-white rounded-xl shadow-sm p-6 border-l-4 {% if item.selected and item.selected.id == item.correct.id %}border-green-500{% elif item.selected %}border-red-500{% else %}border-gray-300{% endif %}">
+            <!-- Question Header -->
+            <div class="flex items-start justify-between mb-4">
+                <div class="flex items-start flex-1">
+                    <span class="bg-gray-100 text-gray-700 px-3 py-1 rounded-md font-semibold text-sm mr-3 flex-shrink-0">
+                        Q{{ forloop.counter }}
+                    </span>
+                    <h3 class="text-base font-semibold text-gray-900 leading-relaxed">{{ item.question.text }}</h3>
+                </div>
+                {% if item.selected and item.selected.id == item.correct.id %}
+                    <span class="bg-green-100 text-green-700 px-3 py-1.5 rounded-full text-xs font-semibold flex-shrink-0 flex items-center">
+                        <svg class="h-4 w-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                        </svg>
+                        Correct
+                    </span>
+                {% elif item.selected %}
+                    <span class="bg-red-100 text-red-700 px-3 py-1.5 rounded-full text-xs font-semibold flex-shrink-0 flex items-center">
+                        <svg class="h-4 w-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
+                        </svg>
+                        Incorrect
+                    </span>
+                {% else %}
+                    <span class="bg-gray-100 text-gray-700 px-3 py-1.5 rounded-full text-xs font-semibold flex-shrink-0">
+                        Not Answered
+                    </span>
+                {% endif %}
+            </div>
+
+            <!-- Answer Details -->
+            <div class="space-y-3 mt-4">
+                <!-- Your Answer -->
+                <div class="flex items-start">
+                    <span class="text-sm font-semibold text-gray-600 mr-3 min-w-[120px]">Your Answer:</span>
+                    {% if item.selected %}
+                        <span class="text-sm {% if item.selected.id == item.correct.id %}text-green-700 font-semibold{% else %}text-red-700 font-semibold{% endif %}">
+                            {{ item.selected.text }}
+                        </span>
+                    {% else %}
+                        <span class="text-sm text-gray-400 italic">Not answered</span>
+                    {% endif %}
+                </div>
+
+                <!-- Correct Answer (only show if wrong or not answered) -->
+                {% if not item.selected or item.selected.id != item.correct.id %}
+                <div class="flex items-start">
+                    <span class="text-sm font-semibold text-gray-600 mr-3 min-w-[120px]">Correct Answer:</span>
+                    {% if item.correct %}
+                        <span class="text-sm text-green-700 font-semibold">
+                            {{ item.correct.text }}
+                        </span>
+                    {% else %}
+                        <span class="text-sm text-gray-400 italic">Not set</span>
+                    {% endif %}
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<!-- Action Buttons -->
+<div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 mb-12">
+    <div class="flex flex-col sm:flex-row gap-4">
+        <a href="{% url 'home' %}" class="flex-1 bg-gray-100 text-gray-700 py-3 px-6 rounded-xl font-semibold hover:bg-gray-200 transition text-center">
+            Back to Home
+        </a>
+        <button onclick="window.print()" class="flex-1 bg-gradient-to-r from-indigo-600 to-purple-600 text-white py-3 px-6 rounded-xl font-semibold hover:from-indigo-700 hover:to-purple-700 transition text-center">
+            Print Results
+        </button>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Calculate incorrect answers
+document.addEventListener('DOMContentLoaded', function() {
+    const total = {{ attempt.exam.questions.count }};
+    const correct = {{ attempt.score }};
+    const incorrect = total - correct;
     
-    <p>Correct Answer: 
-        {% if item.correct %}
-            {{ item.correct.text }}
-        {% else %}
-            Not set
-        {% endif %}
-    </p>
-    
-    <hr>
-  </div>
-{% endfor %}
+    // Update incorrect count
+    const incorrectElements = document.querySelectorAll('.bg-red-50 .text-red-600');
+    incorrectElements.forEach(el => {
+        if (el.classList.contains('text-2xl')) {
+            el.textContent = incorrect;
+        }
+    });
+});
+</script>
+{% endblock %}

@@ -26,10 +26,7 @@ SECRET_KEY = "django-insecure-h!wq_sl*u$t2%g44(t=yk2m_5!cn0v@6_bwsfvguzv08erb1$9
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = [
-	"10.9.130.134",
-	"127.0.0.1"
-]
+ALLOWED_HOSTS = ["10.9.72.10", "127.0.0.1"]
 
 CSRF_TRUSTED_ORIGINS = [
 	"http://yannaing-50081.portmap.host:50081",
@@ -62,6 +59,7 @@ MIDDLEWARE = [
 	"django.contrib.auth.middleware.AuthenticationMiddleware",
 	"django.contrib.messages.middleware.MessageMiddleware",
 	"django.middleware.clickjacking.XFrameOptionsMiddleware",
+	"core.middleware.RequestIPLoggingMiddleware",
 ]
 
 ROOT_URLCONF = "exam_system.urls"

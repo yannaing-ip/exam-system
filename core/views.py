@@ -4,31 +4,34 @@ from django.utils import timezone
 from datetime import timedelta
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.http import require_POST
 
 from .models import Exam, ExamAttempt, Question, Answer, Choice
 
 
 def landing(request):
-	# If user is logged in, redirect to dashboard
+	"""Landing page view - redirects authenticated users to home"""
 	if request.user.is_authenticated:
 		return redirect("home")
 
-	# Render landing page for visitors
 	return render(
 		request,
 		"core/landing.html",
 		{
-			"year": timezone.now().year,  # for footer
+			"year": timezone.now().year,
 		},
 	)
 
 
+@login_required
 def home(request):
+	"""Home page showing all active exams with attempt information"""
 	exams = Exam.objects.filter(is_active=True)
 
 	exams_info = []
 	for exam in exams:
 		attempts_done = ExamAttempt.objects.filter(user=request.user, exam=exam).count()
+
 		if exam.max_attempts == 0:
 			attempts_remaining = "Unlimited"
 			can_start = True
@@ -50,20 +53,24 @@ def home(request):
 
 @login_required
 def start_exam(request, exam_id):
+	"""Create a new exam attempt"""
 	exam = get_object_or_404(Exam, id=exam_id, is_active=True)
 
-	# count previous attempts
+	# Count previous attempts
 	attempts = ExamAttempt.objects.filter(user=request.user, exam=exam).count()
 
-	if attempts >= exam.max_attempts:
+	if exam.max_attempts > 0 and attempts >= exam.max_attempts:
 		return redirect("exam_not_allowed")
 
-	# create attempt
+	# Create new attempt
 	start_time = timezone.now()
 	end_time = start_time + timedelta(minutes=exam.duration)
 
 	ExamAttempt.objects.create(
-		user=request.user, exam=exam, start_time=start_time, end_time=end_time
+		user=request.user,
+		exam=exam,
+		start_time=start_time,
+		end_time=end_time,
 	)
 
 	return redirect("take_exam", exam_id=exam.id)
@@ -71,37 +78,32 @@ def start_exam(request, exam_id):
 
 @login_required
 def take_exam(request, exam_id):
+	"""Main exam taking view"""
 	exam = get_object_or_404(Exam, id=exam_id, is_active=True)
 
+	# Get the latest unsubmitted attempt
 	attempt = (
 		ExamAttempt.objects.filter(user=request.user, exam=exam, is_submitted=False)
 		.order_by("-start_time")
+		.prefetch_related("answers__choice", "answers__question")
 		.first()
 	)
 
 	if not attempt:
 		return redirect("start_exam", exam_id=exam.id)
 
-	# auto-submit if time expired
-	if timezone.now() > attempt.end_time:
-		# calculate score automatically
+	# Calculate remaining time
+	now = timezone.now()
+	time_remaining = (attempt.end_time - now).total_seconds()
+
+	# Auto-submit if time expired (with 5 second buffer to prevent immediate submission)
+	if time_remaining < -5:
 		attempt.score = calculate_score(attempt)
 		attempt.is_submitted = True
 		attempt.save()
 		return redirect("exam_result", attempt_id=attempt.id)
 
 	questions = Question.objects.filter(exam=exam).prefetch_related("choices")
-
-	if request.method == "POST":
-		for question in questions:
-			choice_id = request.POST.get(f"question_{question.id}")
-			if choice_id:
-				choice = Choice.objects.get(id=choice_id)
-				Answer.objects.update_or_create(
-					attempt=attempt, question=question, defaults={"choice": choice}
-				)
-
-		return redirect("submit_exam", exam_id=exam.id)
 
 	return render(
 		request,
@@ -110,34 +112,41 @@ def take_exam(request, exam_id):
 			"exam": exam,
 			"attempt": attempt,
 			"questions": questions,
+			"time_remaining": max(0, int(time_remaining)),  # Pass remaining seconds
 		},
 	)
 
 
 @login_required
-@csrf_exempt
+@require_POST
 def save_answer(request):
-	if request.method == "POST":
-		attempt_id = request.POST.get("attempt_id")
-		question_id = request.POST.get("question_id")
-		choice_id = request.POST.get("choice_id")
+	"""AJAX endpoint to save individual answers"""
+	attempt_id = request.POST.get("attempt_id")
+	question_id = request.POST.get("question_id")
+	choice_id = request.POST.get("choice_id")
 
-		attempt = get_object_or_404(ExamAttempt, id=attempt_id, user=request.user)
+	try:
+		attempt = get_object_or_404(
+			ExamAttempt, id=attempt_id, user=request.user, is_submitted=False
+		)
 		question = get_object_or_404(Question, id=question_id)
 		choice = get_object_or_404(Choice, id=choice_id)
 
-		# update_or_create ensures one answer per question per attempt
+		# Update or create ensures one answer per question per attempt
 		Answer.objects.update_or_create(
-			attempt=attempt, question=question, defaults={"choice": choice}
+			attempt=attempt,
+			question=question,
+			defaults={"choice": choice},
 		)
 
 		return JsonResponse({"status": "ok"})
-
-	return JsonResponse({"status": "fail"}, status=400)
+	except Exception as e:
+		return JsonResponse({"status": "fail", "error": str(e)}, status=400)
 
 
 @login_required
 def submit_exam(request, exam_id):
+	"""Submit the exam and calculate score"""
 	exam = get_object_or_404(Exam, id=exam_id)
 	attempt = ExamAttempt.objects.filter(
 		user=request.user, exam=exam, is_submitted=False
@@ -148,24 +157,33 @@ def submit_exam(request, exam_id):
 		attempt.score = calculate_score(attempt)
 		attempt.is_submitted = True
 		attempt.save()
+		return redirect("exam_result", attempt_id=attempt.id)
 
-	return redirect("exam_result", attempt_id=attempt.id)
+	return redirect("home")
 
 
 @login_required
 def exam_submitted(request):
+	"""Confirmation page after exam submission"""
 	return render(request, "core/exam_submitted.html")
-
 
 @login_required
 def exam_confirm(request, exam_id):
+	"""Review page before final submission"""
 	exam = get_object_or_404(Exam, id=exam_id)
 	attempt = ExamAttempt.objects.filter(
 		user=request.user, exam=exam, is_submitted=False
 	).last()
 
-	# Pass all answers as a queryset
-	answers = attempt.answers.select_related("choice", "question").all()
+	if not attempt:
+		return redirect("start_exam", exam_id=exam.id)
+
+	# Calculate remaining time
+	now = timezone.now()
+	time_remaining = (attempt.end_time - now).total_seconds()
+
+	# Get all answers for this attempt as a list
+	answers = list(attempt.answers.select_related("choice", "question").all())
 	questions = exam.questions.prefetch_related("choices")
 
 	return render(
@@ -175,15 +193,14 @@ def exam_confirm(request, exam_id):
 			"exam": exam,
 			"attempt": attempt,
 			"questions": questions,
-			"answers": answers,  # now queryset
+			"answers": answers,
+			"time_remaining": max(0, int(time_remaining)),  # Pass remaining seconds
 		},
 	)
 
 
 def calculate_score(attempt):
-	"""
-	Calculate the number of correct answers for an attempt.
-	"""
+	"""Calculate the number of correct answers for an attempt"""
 	correct_answers = 0
 	for answer in attempt.answers.select_related("choice"):
 		if answer.choice.is_correct:
@@ -192,6 +209,7 @@ def calculate_score(attempt):
 
 
 def calculate_percentage(attempt):
+	"""Calculate the percentage score for an attempt"""
 	total_questions = attempt.exam.questions.count()
 	if total_questions == 0:
 		return 0
@@ -200,10 +218,9 @@ def calculate_percentage(attempt):
 
 @login_required
 def exam_result(request, attempt_id):
+	"""Display exam results with correct/incorrect answers"""
 	attempt = get_object_or_404(ExamAttempt, id=attempt_id, user=request.user)
-	questions = attempt.exam.questions.prefetch_related(
-		"choices"
-	)  # <-- removed 'answers'
+	questions = attempt.exam.questions.prefetch_related("choices")
 
 	results = []
 	for question in questions:
