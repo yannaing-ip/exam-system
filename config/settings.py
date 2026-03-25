@@ -91,3 +91,5 @@ SESSION_COOKIE_SAMESITE = 'Lax'
 CSRF_COOKIE_HTTPONLY = False
 
 RATELIMIT_EXCEPTION_HANDLER = 'django_ratelimit.exceptions.Ratelimited'
+
+ALLOWED_HOSTS = ['web-production-21668.up.railway.app', '127.0.0.1', 'localhost']
